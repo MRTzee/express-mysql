@@ -9,6 +9,11 @@ export const createExpense = async (
   next: NextFunction
 ) => {
   try {
+    // cara manual
+    // req.body.date = new Date(req.body.date)
+    //   .toISOString()
+    //   .slice(0, 19)
+    //   .replace("T", " ");
     const { name, category, nominal, date } = req.body;
     const formatDate = format(new Date(date), "yyyy-MM-dd HH:mm:ss");
     const query = `insert into expenses (name, category, nominal, date) values ('${name}', '${category}', ${nominal}, '${formatDate}')`;

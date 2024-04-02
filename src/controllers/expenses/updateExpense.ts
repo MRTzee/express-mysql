@@ -10,29 +10,29 @@ export const updateExpense = async (
 ) => {
   try {
     const { id } = req.params;
-    const keysArray = Object.keys(req.body);
+    const validateQuery = `select * from expenses where id = ${id}`;
+    const [rows] = await db.query<Expense[]>(validateQuery);
 
-    let query = `update expenses set`;
-    keysArray.forEach((key, index) => {
-      query +=
-        " " +
-        key +
-        (typeof req.body[key] === "string"
-          ? `='${req.body[key]}'`
-          : `=${req.body[key]}`);
+    if (!rows.length) {
+      throw new Error("id not found");
+    }
 
-      if (index !== keysArray.length - 1) {
-        query += ",";
+    if (!Object.keys(req.body).length) {
+      throw new Error("No field to update");
+    }
+
+    let query = `update expenses set `;
+    Object.keys(req.body).forEach((key, index) => {
+      query += `${key} = '${req.body[key]}'`;
+      if (index !== Object.keys(req.body).length - 1) {
+        query += `, `;
       }
     });
-    query += " " + `where id=${id}`;
-    // console.log(query);
 
+    query += ` where id = ${id}`;
     await db.query<Expense[]>(query);
 
-    const getQuery = "select * from expenses";
-    const [rows] = await db.query<Expense[]>(getQuery);
-    res.status(200).send({ message: "success", data: rows });
+    res.status(200).send("update expense success");
   } catch (error) {
     next(error);
   }

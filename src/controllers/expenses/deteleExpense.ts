@@ -9,8 +9,13 @@ export const deleteExpense = async (
 ) => {
   try {
     const { id } = req.params;
-    const query = `delete from expenses where id = ${id}`;
-    await db.query<Expense[]>(query);
+    const validateQuery = `select * from expenses where id = ${id}`;
+    const deleteQuery = `delete from expenses where id = ${id}`;
+    const [rows] = await db.query<Expense[]>(validateQuery);
+    if (!rows.length) {
+      throw new Error("id not found");
+    }
+    await db.query<Expense[]>(deleteQuery);
     res.status(200).send("delete data success");
   } catch (error) {
     next(error);

@@ -10,11 +10,12 @@ export const getExpenses = async (
   next: NextFunction
 ) => {
   try {
-    const { startDate, endDate, category } = req.query;
+    const { category, startDate, endDate } = req.query;
+    let query = "select * from expenses";
+    const whereClause: string[] = [];
+
     if (category) {
-      const query = `select * from expenses where category like '%${category}%'`;
-      const [rows] = await db.query<Expense[]>(query);
-      res.status(200).send({ message: "success", data: rows });
+      whereClause.push(`category like '%${category}'`);
     }
 
     if ((startDate && !endDate) || (!startDate && endDate)) {
@@ -27,11 +28,13 @@ export const getExpenses = async (
         "yyyy-MM-dd HH:mm:ss"
       );
       const end = format(new Date(endDate as string), "yyyy-MM-dd HH:mm:ss");
-      const query = `select * from expenses where date between '${start}' and '${end}'`;
-      const [rows] = await db.query<Expense[]>(query);
-      res.status(200).send({ message: "success", data: rows });
+      whereClause.push(`date between '${start}' and '${end}'`);
     }
-    const query = "select * from expenses";
+
+    if (whereClause.length > 0) {
+      query += " where " + whereClause.join(" and");
+    }
+
     const [rows] = await db.query<Expense[]>(query);
 
     res.status(200).send({ message: "success", data: rows });
